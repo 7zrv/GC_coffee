@@ -2,7 +2,7 @@ package org.example.gc_coffee.order.scheduler;
 
 
 import lombok.RequiredArgsConstructor;
-import org.example.gc_coffee.order.service.OrderSerivce;
+import org.example.gc_coffee.order.service.OrderService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Component
 public class OrderStatusScheduler {
 
-    private final OrderSerivce orderSerivce;
+    private final OrderService orderService;
 
     // 매일 14시에 실행
     @Scheduled(cron = "0 0 14 * * *")
@@ -21,7 +21,7 @@ public class OrderStatusScheduler {
         LocalDateTime startOfDay = now.minusDays(1).withHour(14).withMinute(0).withSecond(0).withNano(0);
         LocalDateTime endOfDay = now.withHour(14).withMinute(0).withSecond(0).withNano(0);
 
-        orderSerivce.updateOrderStatus(startOfDay, endOfDay);
+        orderService.updateOrderStatus(startOfDay, endOfDay);
     }
 
 }

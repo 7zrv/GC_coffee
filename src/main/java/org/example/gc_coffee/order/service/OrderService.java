@@ -33,7 +33,7 @@ import static org.example.gc_coffee.global.exception.ExceptionCode.NOT_FOUND_PRO
 
 @RequiredArgsConstructor
 @Service
-public class OrderSerivce {
+public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderItemService orderItemService;
@@ -49,17 +49,35 @@ public class OrderSerivce {
         orderRepository.save(order);  // Order는 즉시 저장
 
         // productId 목록을 먼저 수집
-        List<UUID> productIds = requestDto.getItems().stream()
-                .map(CreateOrderItemRequestDto::getProductId)
-                .collect(Collectors.toList());
+        List<UUID> productIds = extractionProductIds(requestDto);
 
         // productId 목록으로 한번에 제품 조회
-        Map<UUID, Product> productMap = productService.getProductByIds(productIds).stream()
-                .collect(Collectors.toMap(Product::getProductId, Function.identity()));
+        Map<UUID, Product> productMap = getProducts(productIds);
 
         // orderItems 및 응답 객체 생성
-        List<OrderItem> orderItems = new ArrayList<>();
+        List<OrderItem> orderItems = getOrderItems(requestDto, productMap, order);
+
+        // orderItems 한번에 저장 (saveAll)
+        orderItemService.createOrderItems(orderItems);
+
+        //responseDto 변환 메서드
+        List<OrderItemResponse> orderItemResponses = convertToOrderItemResponses(orderItems);
+
+        // 응답 반환
+        return OrderResponseDto.of(order, orderItemResponses);
+    }
+
+    private static List<OrderItemResponse> convertToOrderItemResponses(List<OrderItem> orderItems) {
         List<OrderItemResponse> orderItemResponses = new ArrayList<>();
+        for (OrderItem orderItem : orderItems) {
+            orderItemResponses.add(OrderItemResponse.from(orderItem));
+        }
+        return orderItemResponses;
+    }
+
+    private static List<OrderItem> getOrderItems(CreateOrderRequestDto requestDto, Map<UUID, Product> productMap, Order order) {
+        List<OrderItem> orderItems = new ArrayList<>();
+        
 
         for (CreateOrderItemRequestDto itemDto : requestDto.getItems()) {
 
@@ -68,17 +86,23 @@ public class OrderSerivce {
 
             OrderItem orderItem = itemDto.of(product, order);
             orderItems.add(orderItem);
-            orderItemResponses.add(OrderItemResponse.from(orderItem));
+            
         }
-
-        // orderItems 한번에 저장 (saveAll)
-        orderItemService.createOrderItems(orderItems);
-
-        // 응답 반환
-        return OrderResponseDto.of(order, orderItemResponses);
+        return orderItems;
     }
 
+    private static List<UUID> extractionProductIds(CreateOrderRequestDto requestDto) {
+        List<UUID> productIds = requestDto.getItems().stream()
+                .map(CreateOrderItemRequestDto::getProductId)
+                .collect(Collectors.toList());
+        return productIds;
+    }
 
+    private Map<UUID, Product> getProducts(List<UUID> productIds) {
+        Map<UUID, Product> productMap = productService.getProductByIds(productIds).stream()
+                .collect(Collectors.toMap(Product::getProductId, Function.identity()));
+        return productMap;
+    }
 
 
     //주문 단건 조회

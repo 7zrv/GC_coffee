@@ -24,6 +24,7 @@ public class CreateProductRequestDto {
     @NotEmpty(message = "제품 설명을 입력해주세요.")
     private String description;
 
+
     public Product toEntity(){
         return Product.builder()
                 .productName(productName)

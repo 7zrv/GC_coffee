@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.gc_coffee.global.common.response.ApiResponse;
 import org.example.gc_coffee.order.requestDto.CreateOrderRequestDto;
 import org.example.gc_coffee.order.responseDto.OrderResponseDto;
-import org.example.gc_coffee.order.service.OrderSerivce;
+import org.example.gc_coffee.order.service.OrderService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -16,13 +16,13 @@ import java.util.UUID;
 @RequestMapping("/api/order")
 public class OrderApiController {
 
-    private final OrderSerivce orderSerivce;
+    private final OrderService orderService;
 
     //주문등록 컨트롤러
     @PostMapping("")
     public ApiResponse<OrderResponseDto> createOrder(@RequestBody @Valid CreateOrderRequestDto requestDto) {
 
-        OrderResponseDto responseDto = orderSerivce.createOrder(requestDto);
+        OrderResponseDto responseDto = orderService.createOrder(requestDto);
 
         return ApiResponse.ok(201, responseDto, "상품 주문 성공");
     }
@@ -31,7 +31,7 @@ public class OrderApiController {
     @GetMapping("/{orderId}")
     public ApiResponse<OrderResponseDto> getOrder(@PathVariable UUID orderId) {
 
-        OrderResponseDto responseDto = orderSerivce.getOrder(orderId);
+        OrderResponseDto responseDto = orderService.getOrder(orderId);
 
         return ApiResponse.ok(200, responseDto, "주문 조회 성공");
     }
@@ -40,7 +40,7 @@ public class OrderApiController {
     @DeleteMapping("/{orderId}")
     public ApiResponse<?> deleteOrder(@PathVariable UUID orderId) {
 
-        orderSerivce.deleteOrder(orderId);
+        orderService.deleteOrder(orderId);
 
         return ApiResponse.ok("주문 취소 성공");
     }
